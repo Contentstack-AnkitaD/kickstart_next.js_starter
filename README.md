@@ -5,6 +5,7 @@ This kickstart covers the following items:
 
 - SDK initialization
 - Live preview and Visual building setup
+- Support for standard regions (EU/US) and development regions with automatic endpoint generation
 
 More details about this codebase can be found on the [Contentstack docs](https://www.contentstack.com/docs/developers).
 
@@ -59,6 +60,36 @@ NEXT_PUBLIC_CONTENTSTACK_REGION=<YOUR_REGION>
 NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT=preview
 NEXT_PUBLIC_CONTENTSTACK_PREVIEW=true
 ```
+
+### Development Regions Support
+
+This implementation now supports development regions with automatic endpoint generation. To use a development region:
+
+1. Set `NEXT_PUBLIC_CONTENTSTACK_REGION` to your development region identifier (e.g., `dev11`, `dev14`, `stag`)
+
+The system will automatically generate the necessary endpoints using the following pattern:
+- API Host: `https://{region}-api.csnonprod.com`
+- App Host: `https://{region}-app.csnonprod.com`
+- Preview Host: `https://{region}-rest-preview.csnonprod.com`
+
+Examples:
+```
+# For dev11
+NEXT_PUBLIC_CONTENTSTACK_REGION=dev11
+# Automatically generates:
+# - https://dev11-api.csnonprod.com
+# - https://dev11-app.csnonprod.com
+# - https://dev11-rest-preview.csnonprod.com
+
+# For stag
+NEXT_PUBLIC_CONTENTSTACK_REGION=stag
+# Automatically generates:
+# - https://stag-api.csnonprod.com
+# - https://stag-app.csnonprod.com
+# - https://stag-rest-preview.csnonprod.com
+```
+
+For standard regions (EU/US), the system will use the default Contentstack endpoints.
 
 ## Turn on Live Preview
 
