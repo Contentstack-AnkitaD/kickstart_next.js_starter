@@ -22,7 +22,7 @@ const isDevelopmentRegion = !isStandardRegion && !!csRegion;
 // Handle endpoints generation based on region type
 if (isDevelopmentRegion) {
   // For development regions, generate endpoints based on the region value
-  region = Region.NA; // Default to North America region as base
+  region = Region.US; // Default to North America region as base
   
   // Generate API and App host URLs based on region
   // Format examples:
