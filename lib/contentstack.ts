@@ -7,11 +7,45 @@ import { Page } from "./types";
 // helper functions from private package to retrieve Contentstack endpoints in a convienient way
 import { getContentstackEndpoints, getRegionForString } from "@timbenniks/contentstack-endpoints";
 
-// Set the region by string value from environment variables
-const region = getRegionForString(process.env.NEXT_PUBLIC_CONTENTSTACK_REGION as string);
+// Get region or handle custom development regions
+let region: Region;
+let endpoints: any;
 
-// object with all endpoints for region.
-const endpoints = getContentstackEndpoints(region, true)
+// Get the region value from environment variable
+const csRegion = process.env.NEXT_PUBLIC_CONTENTSTACK_REGION as string;
+
+// Check if it's a standard (EU/US) or development region
+// Standard regions are "eu" or "us", development regions are expected to be "dev11", "dev14", "stag", etc.
+const isStandardRegion = ['eu', 'us'].includes(csRegion?.toLowerCase());
+const isDevelopmentRegion = !isStandardRegion && !!csRegion;
+
+// Handle endpoints generation based on region type
+if (isDevelopmentRegion) {
+  // For development regions, generate endpoints based on the region value
+  region = Region.NA; // Default to North America region as base
+  
+  // Generate API and App host URLs based on region
+  // Format examples:
+  // dev11 -> dev11-api.csnonprod.com, dev11-app.csnonprod.com
+  // stag -> stag-api.csnonprod.com, stag-app.csnonprod.com
+  
+  const apiHost = `${csRegion}-api.csnonprod.com`;
+  const appHost = `${csRegion}-app.csnonprod.com`;
+  
+  // Create endpoints object with generated values
+  endpoints = {
+    api: apiHost,
+    application: appHost,
+    // Derive preview host from region by adding "-rest-preview" instead of "-app"
+    preview: `${csRegion}-rest-preview.csnonprod.com`
+  };
+  
+  console.log(`Generated endpoints for ${csRegion} region:`, endpoints);
+} else {
+  // For standard regions (EU/US), use the existing implementation
+  region = getRegionForString(csRegion);
+  endpoints = getContentstackEndpoints(region, true);
+}
 
 export const stack = contentstack.stack({
   // Setting the API key from environment variables
@@ -22,6 +56,8 @@ export const stack = contentstack.stack({
   environment: process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT as string,
   // Setting the region based on environment variables
   region: region,
+  // Host configuration for development regions
+  ...(isDevelopmentRegion && endpoints.api ? { host: endpoints.api } : {}),
   live_preview: {
     // Enabling live preview if specified in environment variables
     enable: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW === 'true',
@@ -52,6 +88,7 @@ export function initLivePreview() {
     },
   });
 }
+
 // Function to fetch page data based on the URL
 export async function getPage(url: string) {
   const result = await stack
